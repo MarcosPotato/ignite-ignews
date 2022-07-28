@@ -28,7 +28,10 @@ export async function saveSubscription(
         price_id: subscription.items.data[0].price.id
     }
 
+    console.log(subscriptionData )
+
     if(createAction){
+        console.log("criando")
         await faunadb.query(
             q.Create(
                 q.Collection('subscriptions'),
@@ -36,6 +39,7 @@ export async function saveSubscription(
             )
         )
     } else{
+        console.log("atualizando")
         await faunadb.query(
             q.Replace(
                 q.Select(
