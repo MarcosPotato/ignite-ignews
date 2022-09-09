@@ -44,8 +44,6 @@ describe("Subscribe Button Component", () => {
         const signInMocked = jest.mocked(signIn)
         const useSessionMocked = jest.mocked(useSession)
 
-        console.log(useSessionMocked)
-
         useSessionMocked.mockReturnValueOnce({
             data: null,
             status: "unauthenticated"
