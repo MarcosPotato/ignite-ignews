@@ -16,6 +16,8 @@ export function SubscribeButton(){
             return
         }
 
+        console.log("Autenticado")
+
         if(data.activeSubscription){
             push("/posts")
             return
@@ -24,9 +26,12 @@ export function SubscribeButton(){
         try {
             const response = await api.post("/subscribe")
 
+            console.log(response)
+
             const { sessionId } = response.data
 
             const stripe = await getStripeJS()
+            console.log(stripe)
 
             await stripe.redirectToCheckout({ sessionId })
 

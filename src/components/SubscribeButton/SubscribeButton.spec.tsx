@@ -3,9 +3,20 @@ import '@testing-library/jest-dom'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { useSession, signIn } from 'next-auth/react'
 import { useRouter } from 'next/router'
+import { getStripeJS } from '../../services/stripe-js'
 import { SubscribeButton } from './index'
 
 jest.mock("next-auth/react")
+
+jest.mock("../../services/api", () => {
+    return {
+        api: {
+            post: jest.fn().mockResolvedValue({ data: { sessionId: "fake-session-ID" } })
+        }
+    }
+})
+
+jest.mock("../../services/stripe-js")
 
 jest.mock("next/router", () => {
     return {
@@ -40,7 +51,7 @@ describe("Subscribe Button Component", () => {
         expect(screen.getByText("Subscribe Now")).toBeInTheDocument()
     })
 
-    it("redirects user to signbin in when not authenticated", () => {
+    it("redirects user to signin in when not authenticated", () => {
         const signInMocked = jest.mocked(signIn)
         const useSessionMocked = jest.mocked(useSession)
 
@@ -80,5 +91,36 @@ describe("Subscribe Button Component", () => {
         fireEvent.click(subscribeButton)
 
         expect(pushMock).toHaveBeenCalled()
+    })
+
+    it("redirects to payment page", () => {
+        const useSessionMocked = jest.mocked(useSession)
+        const getStripeJSMock = jest.mocked(getStripeJS)
+
+        const redirectSubMock = jest.fn(() => Promise.resolve(undefined))
+
+        getStripeJSMock.mockResolvedValueOnce({
+            redirectToCheckout: redirectSubMock
+        }as any)
+        
+        useSessionMocked.mockReturnValueOnce({
+            data: {
+                user: {
+                    name: "John Doe",
+                    email: "john.doe@example.com.br"
+                },
+                expires: "false",
+                activeSubscription: false
+            },
+            status: "authenticated"
+        })
+
+        render( <SubscribeButton /> )
+
+        const subscribeButton = screen.getByText("Subscribe Now")
+
+        fireEvent.click(subscribeButton)
+
+        expect(redirectSubMock).toHaveBeenCalledWith({ sessionId: "fake-session-ID" })
     })
 })
